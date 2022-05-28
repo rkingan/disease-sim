@@ -46,24 +46,33 @@ class DSNode:
     at each point in time, and a list of neighbors.
 
     """
-    def __init__(self, label: str, initial_state: DSState):
+    def __init__(self, label: str, initial_state: DSState, death_ftn: Callable[[int, float], bool]):
         self.label = label
         self.states = [initial_state]
         self.neighbors = []
+        self.death_ftn = death_ftn
 
-    def set_new_state(self, t: int, state: DSState):
+    def check_recovery(self, t: int, r: float):
+        ns = len(self.states)
+        if t < ns:
+            raise ValueError(f"New state for time {t} is already set for node {self.label}")
+        curr_state = self.states[-1]
+        if curr_state != DSState.INFECTED:
+            self.states.append(curr_state)
+        else:
+            recovered = self.death_ftn(t, r)
+            if recovered:
+                self.states.append(DSState.RECOVERED)
+            else:
+                self.states.append(curr_state)
+
+    def set_new_state(self, state: DSState):
         """
 
         Sets new state of the node, or at least contributes to it.
 
         """
-        ns = len(self.states)
-        if t not in (ns, ns - 1):
-            raise RuntimeError(f"Cannot set state at time {t}, there are {ns} previous states")
-        if ns >= len(self.states):
-            self.states.append(state)
-        else:
-            self.states[-1] = combine_states(self.states[-1], state)
+        self.states[-1] = combine_states(self.states[-1], state)
 
     def get_state(self, t: int) -> DSState:
         """
@@ -81,10 +90,9 @@ class DSNode:
 
 
 def propagate(
-    node: DSNode,
+    nodes: Iterable[DSNode],
     t: int,
     ps: float,
-    death_ftn: Callable[[int, float], bool],
     rng: Callable[[], float]
     ):
     """
@@ -105,29 +113,26 @@ def propagate(
     rng - random number generating function
 
     """
-    if node.get_state() == DSState.INFECTED:
-        #
-        # virus may die in this node; if so it does non infect any other nodes
-        #
+
+    for node in nodes:
         r = rng()
-        d = death_ftn(t, r)
-        if d:
-            node.set_new_state(t, DSState.RECOVERED)
-        else:
+        node.check_recovery(t, r)
+
+    for node in nodes:
+        if node.get_state(t - 1) == DSState.INFECTED:
             #
             # each other node gets infected with probability ps
             #
             for nbr in node.neighbors:
                 r = rng()
                 if r < ps:
-                    nbr.set_new_state(t, DSState.INFECTED)
+                    nbr.set_new_state(DSState.INFECTED)
 
 
 def iterate(
     nodes: Iterable[DSNode],
     nt: int,
     ps: float,
-    death_ftn: Callable[[int, float], bool],
     rng: Callable[[], float] = random.random
     ):
     """
@@ -150,5 +155,4 @@ def iterate(
 
     """
     for t in range(1, 1 + nt):
-        for node in nodes:
-            propagate(node, t, ps, death_ftn, rng)
+        propagate(nodes, t, ps, rng)

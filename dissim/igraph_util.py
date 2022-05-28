@@ -3,7 +3,7 @@
 Utility functions for working with igraph Graph representations.
 
 """
-from typing import Iterable, Dict
+from typing import Iterable, Dict, Callable
 from igraph import Graph
 from dissim.main import DSNode, DSState
 
@@ -16,7 +16,7 @@ _DEFAULT_COLOR_MAP = {
 }
 
 
-def nodes_from_igraph(G: Graph, initial_states: Iterable[DSState]) -> Iterable[DSNode]:
+def nodes_from_igraph(G: Graph, initial_states: Iterable[DSState], death_ftn_factory: Callable[[], Callable[[int, float], bool]]) -> Iterable[DSNode]:
     """
 
     Builds a list of DSNode instances from the vertices and edges in a graph
@@ -30,7 +30,8 @@ def nodes_from_igraph(G: Graph, initial_states: Iterable[DSState]) -> Iterable[D
     n = len(G.vs)
     nodes = []
     for i in range(n):
-        nodes.append(DSNode(G.vs["label"][i], initial_states[i]))
+        node = DSNode(G.vs["label"][i], initial_states[i], death_ftn_factory())
+        nodes.append(node)
 
     for edge in G.es:
         src = edge.source
@@ -45,7 +46,7 @@ def nodes_from_igraph(G: Graph, initial_states: Iterable[DSState]) -> Iterable[D
 def colors_from_nodes(
     nodes: Iterable[DSNode],
     t: int,
-    color_map: Dict[DSState, str]
+    color_map: Dict[DSState, str] = _DEFAULT_COLOR_MAP
     ) -> Iterable[str]:
     """
 
