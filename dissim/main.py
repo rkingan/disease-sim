@@ -5,7 +5,6 @@ Contains code for the DSNode object class and methods for doing disease propagat
 """
 import random
 from enum import Enum
-from tkinter import E
 from typing import Callable, Iterable
 
 
