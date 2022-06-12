@@ -1,0 +1,74 @@
+\documentclass[12pt]{amsart}
+
+\usepackage{hyperref}
+\usepackage{epsfig}
+\usepackage{array}
+
+\title{Comparison of two centrality-based vertex removal methods for two centrality measures and two graphs}
+
+\begin{document}
+
+\maketitle
+
+\setlength{\extrarowheight}{4pt}
+
+Let $f$ be a function that accepts a graph with $n$ vertices as input and returns a vector of length $n$ measuring the centralities of centralities of the vertices of the graph. Let $k$ be a number of vertices to remove. 
+
+\bigskip
+
+\noindent {\bf Method 1.} Remove the $k$ vertices of $G$ with the $k$ highest values in $f(G)$. If there are ties, choose randomly among the lowest-scoring vertices.
+
+\medskip
+
+\noindent {\bf Method 2.} Let $v$ be the vertex with the highest value in $f(G)$; if there are ties choose one of the highest-scoring vertices at random. Remove $v$ from $G$ and apply the method to $G \backslash v$. Repeat the process until $k$ vertices have been removed.
+
+\bigskip
+
+These methods were evaluated using two graphs: the karate social network graph (\url{https://networkrepository.com/soc-karate.php}) and a football network (\url{http://www-personal.umich.edu/~mejn/netdata/}), and using spread and eigenvector centrality measures. The karate graph has 34 vertices and 156 edges; 17 vertices were selected for removal. The football graph has 115 vertices and 613 edges; 57 vertices were selected for removal.
+
+\section*{Method 1 results}
+
+Table \ref{m1-table} shows the largest eigenvalue of the remaining graph after the vertices selected by Method 1 have been removed. The final values for the two centrality measures for the karate graph are identical; however they did not remove exactly the same vertices. Specifically, there were two vertices removed for each measure that were not removed for the other.
+
+\begin{table}[h]
+\begin{tabular}{lrr}
+Centrality measure & \multicolumn{1}{l}{Karate} & \multicolumn{1}{l}{Football} \\ \hline
+Spread             & 2.48                       & 9.06                         \\
+Eigenvector        & 2.48                       & 9.09                        
+\end{tabular}
+\caption{Method 1 results}
+\label{m1-table}
+\end{table}
+
+\section*{Method 2 results}
+
+Table \ref{m2-table} shows the largest eigenvalue of the remaining graph after the vertices selected by Method 2 have been removed. The final value for the karate graph is the minimum possible value for a graph with at least one edge.
+
+\begin{table}[h]
+\begin{tabular}{lrr}
+Centrality measure & \multicolumn{1}{l}{Karate} & \multicolumn{1}{l}{Football} \\ \hline
+Spread             & 1.00                       & 4.14                         \\
+Eigenvector        & 1.85                       & 4.05                        
+\end{tabular}
+\caption{Method 2 results}
+\label{m2-table}
+\end{table}
+
+Figure \ref{method-2-karate-figure} shows the largest eigenvalue of the remaining graph at each step of execution of Method 2 for the karate graph, using both centrality measures. The values do not differ until six vertices have been removed.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=4in]{method-2-karate.jpg}
+\caption {Method 2 step-by-step results for the karate graph \label{method-2-karate-figure}}
+\end{figure}
+
+Figure \ref{method-2-football-figure} shows the largest eigenvalue of the remaining graph at each step of execution of Method 2 for the football graph, using both centrality measures. The value from using spread centrality is lower than the value from using eigenvector centrality in 13 of the 57 iterations.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=4in]{method-2-football.jpg}
+\caption {Method 2 step-by-step results for the football graph \label{method-2-football-figure}}
+\end{figure}
+
+
+\end{document}

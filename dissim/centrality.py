@@ -8,14 +8,14 @@ vertices with the highest measure.
 """
 import igraph
 import numpy as np
-import scipy as sp
+from scipy.linalg import eigh
 from copy import deepcopy
 from typing import Callable, Iterable
 
 
 def _largest_eigenvalue(adj: np.array) -> float:
     n = adj.shape[0]
-    w = sp.linalg.eigh(adj, eigvals_only=True, subset_by_index=[n - 1, n - 1])
+    w = eigh(adj, eigvals_only=True, subset_by_index=[n - 1, n - 1])
     return np.real(w)[0]
 
 
@@ -57,8 +57,11 @@ def compute_eigenvector_centrality_of_matrix(adj: np.array) -> np.array:
 
     """
     n = adj.shape[0]
-    w, v = sp.linalg.eigh(adj, subset_by_index=[n - 1, n- 1])
-    return np.array(v[:, 0]).reshape(-1)
+    w, v = eigh(adj, subset_by_index=[n - 1, n- 1])
+    raw_result = np.array(v[:, 0]).reshape(-1)
+    if raw_result[0] < 0:
+        raw_result = -raw_result
+    return raw_result
 
 
 def compute_eigenvector_centrality_of_graph(G: igraph.Graph) -> np.array:
