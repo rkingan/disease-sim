@@ -3,3 +3,4 @@ cairocffi
 numpy
 scipy
 matplotlib
+click

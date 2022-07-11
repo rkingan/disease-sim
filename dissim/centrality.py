@@ -6,6 +6,7 @@ vertices to remove from a graph iteratively by identifying the vertex or
 vertices with the highest measure.
 
 """
+import heapq
 import igraph
 import numpy as np
 from scipy.linalg import eigh
@@ -140,6 +141,24 @@ def compute_betweenness_centrality_of_matrix(adj: np.array) -> np.array:
     return compute_betweenness_centrality_of_graph(G)
 
 
+_GRAPH_CENTRALITY_FTNS = {
+    "spread": compute_spread_centrality_of_graph,
+    "eigenvector": compute_eigenvector_centrality_of_graph,
+    "degree": compute_degree_centrality_of_graph,
+    "closeness": compute_closeness_centrality_of_graph,
+    "betweenness": compute_betweenness_centrality_of_graph
+}
+
+
+CENTRALITY_FTN_TYPE = Callable[[igraph.Graph], np.array]
+def centrality_ftn(name: str) -> CENTRALITY_FTN_TYPE:
+    if name is None:
+        return None
+    if name not in _GRAPH_CENTRALITY_FTNS:
+        raise ValueError(f"Unknown centrality function name {name}, valid names are: {', '.join(_GRAPH_CENTRALITY_FTNS.keys())}")
+    return _GRAPH_CENTRALITY_FTNS[name]
+
+
 def select_vertices_by_centrality_from_matrix(adj: np.array, to_select: int, centrality_ftn: Callable[[np.array], np.array], sampler: Callable[[Iterable, int], Iterable]) -> list:
     """
     
@@ -201,3 +220,54 @@ def select_vertices_by_centrality_from_graph(G: igraph.Graph, to_select: int, ce
     G_labeled = G.copy()
     G_labeled.vs["_select_ind"] = list(range(n))
     return _select_vert_by_cent_from_graph(G_labeled, to_select, centrality_ftn, sampler)
+
+
+def _select_top_k_cent(cent, sampler, to_select, n):
+    ix_cent = list(sampler(list(enumerate(cent)), n))
+    return [t[0] for t in heapq.nlargest(to_select, ix_cent, key=lambda t: t[1])]
+
+
+def select_vertex_batch_by_centrality_from_graph(G: igraph.Graph, to_select: int, centrality_ftn: Callable[[igraph.Graph], np.array], sampler: Callable[[Iterable, int], Iterable]) -> list:
+    """
+    
+    Identifies the top to_select vertices in a graph using a centrality measure
+    and returns their indices. If there are ties for the values at the end of
+    the list, a random sample is selected.
+    
+    """
+    n = len(G.vs)
+    if to_select > n:
+        raise ValueError()
+    cent = centrality_ftn(G)
+    return _select_top_k_cent(cent, sampler, to_select, n)
+
+
+def select_vertex_batch_by_centrality_from_matrix(adj: np.array, to_select: int, centrality_ftn: Callable[[np.array], np.array], sampler: Callable[[Iterable, int], Iterable]) -> list:
+    """
+    
+    Identifies the top to_select vertices in an adjacency matrix using a
+    centrality measure and returns their indices. If there are ties for the
+    values at the end of the list, a random sample is selected.
+    
+    """
+    n = len(adj)
+    if to_select > n:
+        raise ValueError()
+
+    cent = centrality_ftn(adj)
+    return _select_top_k_cent(cent, sampler, to_select, n)
+
+
+_STRATEGIES = {
+    "batch": select_vertex_batch_by_centrality_from_graph,
+    "recursive": select_vertices_by_centrality_from_graph
+}
+
+SELECTION_STRATEGY_TYPE = Callable[[np.array, int, Callable[[np.array], np.array], Callable[[Iterable, int], Iterable]], list]
+
+def selection_strategy(name: str) -> SELECTION_STRATEGY_TYPE:
+    if name is None:
+        return None
+    if name not in _STRATEGIES:
+        raise ValueError(f"No selection strategy found with name {name}, valid names are: {', '.join(_STRATEGIES.keys())}")
+    return _STRATEGIES[name]

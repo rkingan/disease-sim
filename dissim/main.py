@@ -46,113 +46,126 @@ class DSNode:
     at each point in time, and a list of neighbors.
 
     """
-    def __init__(self, label: str, initial_state: DSState, death_ftn: Callable[[int, float], bool]):
+    def __init__(self, label: str, initial_state: DSState):
         self.label = label
         self.states = [initial_state]
         self.neighbors = []
-        self.death_ftn = death_ftn
-
-    def check_recovery(self, t: int, r: float):
-        ns = len(self.states)
-        if t < ns:
-            raise ValueError(f"New state for time {t} is already set for node {self.label}")
-        curr_state = self.states[-1]
-        if curr_state != DSState.INFECTED:
-            self.states.append(curr_state)
-        else:
-            recovered = self.death_ftn(t, r)
-            if recovered:
-                self.states.append(DSState.RECOVERED)
-            else:
-                self.states.append(curr_state)
+        self.time_infected = 0
 
     def set_new_state(self, state: DSState):
         """
 
-        Sets new state of the node, or at least contributes to it.
+        Sets new state of the node.
 
         """
-        self.states[-1] = combine_states(self.states[-1], state)
+        if state == DSState.INFECTED:
+            self.time_infected += 1
+        else:
+            self.time_infected = 0
+        self.states.append(state)
 
-    def get_state(self, t: int) -> DSState:
+    def get_state(self) -> DSState:
         """
 
-        Returns the state of this node at a specific time.
+        Returns the current state of this node.
 
         """
-        ns = len(self.states)
-        if t < ns:
-            return self.states[t]
-        if t == ns:
-            return None
+        return self.states[-1]
 
-        raise IndexError(f"Attempt to get state at time {t}, only {ns} states exist")
+    def count_infected_neighbors(self) -> int:
+        return sum(1 if nbr.get_state() == DSState.INFECTED else 0 for nbr in self.neighbors)
+
+
+class PropModel:
+    """
+    
+    Empty base class for propagation models.
+    
+    """
+    pass
+
+
+class SISModel(PropModel):
+    """
+
+    SIS propagation model - a non-vaxxed node's initial state is UNEXPOSED. An
+    UNEXPOSED node becomes INFECTED with probability ps for k trials, where k is
+    the number of infected neighbors. An INFECTED node becomes UNEXPOSED with
+    probability pd * dur, where dur is the number of time steps the node has
+    been infected.
+
+    """
+    def __init__(self, ps: float, pd: float, rng: Callable[[], float]):
+        self.ps = ps
+        self.pd = pd
+        self.rng = rng
+
+    def apply(self, cur_state: DSState, k: int, dur: int) -> DSState:
+        if cur_state == DSState.UNEXPOSED:
+            if any(self.rng() < self.ps for _ in range(k)):
+                return DSState.INFECTED
+        elif cur_state == DSState.INFECTED:
+            if self.rng() < self.pd * dur:
+                return DSState.UNEXPOSED
+        return cur_state
+
+
+class SIRModel(PropModel):
+    """
+    
+    SIR propagation model - a non-vaxxed node's initial state is UNEXPOSED. An
+    UNEXPOSED node becomes INFECTED with probability ps for k trials, where k is
+    the number of infected neighbors. An INFECTED node becomes RECOVERED with
+    probability pd * dur, where dur is the number of time steps since the node
+    has become infected.
+    
+    """
+    def __init__(self, ps: float, pd: float, rng: Callable[[], float]):
+        self.ps = ps
+        self.pd = pd
+        self.rng = rng
+
+    def apply(self, cur_state: DSState, k: int, dur: int) -> DSState:
+        if cur_state == DSState.UNEXPOSED:
+            if any(self.rng() < self.ps for _ in range(k)):
+                return DSState.INFECTED
+        elif cur_state == DSState.INFECTED:
+            if self.rng() < self.pd * dur:
+                return DSState.RECOVERED
+        return cur_state
+
+
+_MODELS = {
+    "SIS": SISModel,
+    "SIR": SIRModel
+}
+
+
+def prop_model(name):
+    if name not in _MODELS:
+        raise ValueError(f"No model with name {name} found, valid names are: {', '.join(_MODELS.keys())}")
+    return _MODELS[name]
 
 
 def propagate(
     nodes: Iterable[DSNode],
-    t: int,
-    ps: float,
-    rng: Callable[[], float]
+    model: PropModel
     ):
     """
 
-    Propagates state from a node to its neighbors.
-
-    node - the node whose neighbors need updated
-
-    t - the time point being set (i.e. the "next" time)
-
-    ps - probability of spreading the infection to an uninfected, unvaccinated
-    node
-
-    death_ftn - function that accepts the time t and a random number in the
-    range [0, 1] and returns a boolean indicating if the virus dies at this
-    point
-
-    rng - random number generating function
+    Applies a model to propagate states in a collection of nodes
 
     """
 
+    new_states = []
     for node in nodes:
-        r = rng()
-        node.check_recovery(t, r)
+        k = node.count_infected_neighbors()
+        dur = node.time_infected
+        cur_state = node.get_state()
+        ns = model.apply(cur_state, k, dur)
+        new_states.append(ns)
 
+    ix = 0
     for node in nodes:
-        if node.get_state(t - 1) == DSState.INFECTED:
-            #
-            # each other node gets infected with probability ps
-            #
-            for nbr in node.neighbors:
-                r = rng()
-                if r < ps:
-                    nbr.set_new_state(DSState.INFECTED)
-
-
-def iterate(
-    nodes: Iterable[DSNode],
-    nt: int,
-    ps: float,
-    rng: Callable[[], float] = random.random
-    ):
-    """
-
-    Runs propagation for nt rounds, assuming nodes have already been set up with
-    time 0 states.
-
-    nodes - the nodes in the graph
-
-    nt - the number of rounds
-
-    ps - probability of spreading the infection to an uninfected, unvaccinated
-    node
-
-    death_ftn - function that accepts the time t and a random number in the
-    range [0, 1] and returns a boolean indicating if the virus dies at this
-    point
-
-    rng - random number generating function
-
-    """
-    for t in range(1, 1 + nt):
-        propagate(nodes, t, ps, rng)
+        node.set_new_state(new_states[ix])
+        ix += 1
