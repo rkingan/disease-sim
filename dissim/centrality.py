@@ -14,10 +14,15 @@ from copy import deepcopy
 from typing import Callable, Iterable
 
 
-def _largest_eigenvalue(adj: np.array) -> float:
+def largest_eigenvalue(adj: np.array) -> float:
     n = adj.shape[0]
     w = eigh(adj, eigvals_only=True, subset_by_index=[n - 1, n - 1])
     return np.real(w)[0]
+
+
+def largest_graph_eigenvalue(G: igraph.Graph) -> float:
+    adj = np.array(G.get_adjacency().data)
+    return largest_eigenvalue(adj)
 
 
 def compute_spread_centrality_of_matrix(adj: np.array) -> np.array:
@@ -27,13 +32,13 @@ def compute_spread_centrality_of_matrix(adj: np.array) -> np.array:
     reduction in the largest eigenvalue when each vertex is removed.
     
     """
-    full_largest_eig = _largest_eigenvalue(adj)
+    full_largest_eig = largest_eigenvalue(adj)
     n = adj.shape[0]
     values = []
     for i in range(n):
         min_adj = np.delete(adj, i, 0)
         min_adj = np.delete(min_adj, i, 1)
-        min_largest_eig = _largest_eigenvalue(min_adj)
+        min_largest_eig = largest_eigenvalue(min_adj)
         values.append(full_largest_eig - min_largest_eig)
 
     return np.array(values).reshape(-1)

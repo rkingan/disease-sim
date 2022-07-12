@@ -14,7 +14,7 @@ import sys
 import csv
 from typing import Any
 from dissim.igraph_util import load_graph_here, nodes_from_igraph
-from dissim.centrality import centrality_ftn, selection_strategy, SELECTION_STRATEGY_TYPE, CENTRALITY_FTN_TYPE
+from dissim.centrality import centrality_ftn, selection_strategy, SELECTION_STRATEGY_TYPE, CENTRALITY_FTN_TYPE, largest_graph_eigenvalue
 from dissim.main import prop_model, SISModel, DSState, propagate
 from dissim.rng import SimpleSampler, SimpleRNG
 
@@ -44,7 +44,7 @@ def _get_round_totals(nodes, rounds):
 @click.command("run-sim")
 @click.argument("graph", type=load_graph_here)
 @click.argument("output_fname", type=click.Path())
-@click.option("-p", "--patient0-method", "p0", type=str, default=None, help="Name of patient 0 vertex; if not specified repeat for all vertices")
+@click.option("-p", "--patient0-method", "p0", type=str, default=None, help="Comma-separated names of seed vertices; if not specified repeat for all vertices")
 @click.option("-x", "--strategy", "strategy_name", type=str, default=None, help="Name of vaccination selection strategy")
 @click.option("-c", "--centrality", "centrality_name", type=str, default=None, help="Name of centrality measure for vaccination selection")
 @click.option("-f", "--percent-to-vax", "pct_vax", type=int, default=50, help="Percent (integer) of nodes to vaccinate")
@@ -57,6 +57,10 @@ def _get_round_totals(nodes, rounds):
 def run_sim(graph: igraph.Graph, output_fname: str, p0: str, strategy_name: str, centrality_name: str, pct_vax: int, trials: int, model_name: Any, rounds: int, pb: float, pd: float, rng_seed: int):
     n = len(graph.vs)
 
+    log.info("Computing largest eigenvalue of graph...")
+    leig = largest_graph_eigenvalue(graph)
+    log.info("...done. leig = %f", leig)
+
     strategy = selection_strategy(strategy_name)
     centrality = centrality_ftn(centrality_name)
     model = prop_model(model_name)
@@ -65,7 +69,7 @@ def run_sim(graph: igraph.Graph, output_fname: str, p0: str, strategy_name: str,
         p0_list = list(range(n))
     else:
         try:
-            p0_list = [graph.vs["label"].index(p0)]
+            p0_list = [graph.vs["label"].index(s) for s in p0.split(",")]
         except ValueError as _:
             log.error("No vertex with name %s found in graph", p0)
             sys.exit(1)
@@ -89,7 +93,7 @@ def run_sim(graph: igraph.Graph, output_fname: str, p0: str, strategy_name: str,
     
     results = list()
     nd = len(str(rounds))
-    headings = ["graph", "patient0", "patient0_cent", "rounds", "strategy", "centrality", "model", "pb", "pd", "seed", "trial"] + [f"infected_{i:0{nd}d}" for i in range(rounds)]
+    headings = ["graph", "leig", "patient0", "patient0_cent", "rounds", "strategy", "centrality", "model", "pb", "pd", "seed", "trial"] + [f"infected_{i:0{nd}d}" for i in range(rounds)]
 
     model_inst = model(pb, pd, rng)
     log.info("Starting trials...")
@@ -110,7 +114,7 @@ def run_sim(graph: igraph.Graph, output_fname: str, p0: str, strategy_name: str,
             for rnd in range(rounds):
                 propagate(nodes, model_inst)
             totals = _get_round_totals(nodes, rounds)
-            results.append([graph["name"], p0_ix, p0_cent, rounds, strategy_name, centrality_name, model_name, pb, pd, rng_seed, trial] + totals)
+            results.append([graph["name"], leig, p0_ix, p0_cent, rounds, strategy_name, centrality_name, model_name, pb, pd, rng_seed, trial] + totals)
             if trial % 25 == 0:
                 log.info("...done with trial %d...", trial)
         log.info("...done with trials with patient 0 at %d...", p0_ix)
