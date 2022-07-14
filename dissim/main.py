@@ -89,23 +89,22 @@ class SISModel(PropModel):
     """
 
     SIS propagation model - a non-vaxxed node's initial state is UNEXPOSED. An
-    UNEXPOSED node becomes INFECTED with probability ps for k trials, where k is
+    UNEXPOSED node becomes INFECTED with probability pb for k trials, where k is
     the number of infected neighbors. An INFECTED node becomes UNEXPOSED with
-    probability pd * dur, where dur is the number of time steps the node has
-    been infected.
+    probability pd.
 
     """
-    def __init__(self, ps: float, pd: float, rng: Callable[[], float]):
-        self.ps = ps
+    def __init__(self, pb: float, pd: float, rng: Callable[[], float]):
+        self.pb = pb
         self.pd = pd
         self.rng = rng
 
     def apply(self, cur_state: DSState, k: int, dur: int) -> DSState:
         if cur_state == DSState.UNEXPOSED:
-            if any(self.rng() < self.ps for _ in range(k)):
+            if any(self.rng() < self.pb for _ in range(k)):
                 return DSState.INFECTED
         elif cur_state == DSState.INFECTED:
-            if self.rng() < self.pd * dur:
+            if self.rng() < self.pd:
                 return DSState.UNEXPOSED
         return cur_state
 
@@ -116,21 +115,20 @@ class SIRModel(PropModel):
     SIR propagation model - a non-vaxxed node's initial state is UNEXPOSED. An
     UNEXPOSED node becomes INFECTED with probability ps for k trials, where k is
     the number of infected neighbors. An INFECTED node becomes RECOVERED with
-    probability pd * dur, where dur is the number of time steps since the node
-    has become infected.
+    probability pd.
     
     """
-    def __init__(self, ps: float, pd: float, rng: Callable[[], float]):
-        self.ps = ps
+    def __init__(self, pb: float, pd: float, rng: Callable[[], float]):
+        self.pb = pb
         self.pd = pd
         self.rng = rng
 
     def apply(self, cur_state: DSState, k: int, dur: int) -> DSState:
         if cur_state == DSState.UNEXPOSED:
-            if any(self.rng() < self.ps for _ in range(k)):
+            if any(self.rng() < self.pb for _ in range(k)):
                 return DSState.INFECTED
         elif cur_state == DSState.INFECTED:
-            if self.rng() < self.pd * dur:
+            if self.rng() < self.pd:
                 return DSState.RECOVERED
         return cur_state
 
