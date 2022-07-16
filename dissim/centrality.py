@@ -14,14 +14,35 @@ from copy import deepcopy
 from typing import Callable, Iterable
 
 
+def get_numpy_adj_matrix(G: igraph.Graph) -> np.array:
+    """
+    
+    Returns the adjacency matrix of a graph as a numpy array.
+
+    """
+
+    return np.array(G.get_adjacency().data)
+
+
 def largest_eigenvalue(adj: np.array) -> float:
+    """
+    
+    Returns the largest eigenvalue of the adjacency matrix of a graph.
+
+    """
     n = adj.shape[0]
     w = eigh(adj, eigvals_only=True, subset_by_index=[n - 1, n - 1])
     return np.real(w)[0]
 
 
 def largest_graph_eigenvalue(G: igraph.Graph) -> float:
-    adj = np.array(G.get_adjacency().data)
+    """
+    
+    Returns the largest eigenvalue of the adjacency matrix of a graph, given the
+    graph as a python-igraph Graph.
+    
+    """
+    adj = get_numpy_adj_matrix(G)
     return largest_eigenvalue(adj)
 
 
