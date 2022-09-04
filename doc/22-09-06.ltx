@@ -1,0 +1,404 @@
+\documentclass[12pt]{amsart}
+\usepackage{color}
+\usepackage{epsfig}
+\usepackage{verbatim}
+% begin - changes for algorithm
+%\usepackage{clrscode3e}
+\usepackage{parskip}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amssymb}
+
+\newcommand{\algorithmicbreak}{\textbf{break}}
+\newcommand{\Break}{\State \algorithmicbreak}
+% end - changes for algorithm
+
+\let\bbordermatrix\bordermatrix
+\patchcmd{\bbordermatrix}{8.75}{4.75}{}{}
+\patchcmd{\bbordermatrix}{\left(}{\left[}{}{}
+\patchcmd{\bbordermatrix}{\right)}{\right]}{}{}
+
+
+\oddsidemargin 0.2in
+\evensidemargin 0.0in
+\textwidth 6in
+\headheight 0.0in
+\topmargin 0.0in
+\textheight 9in
+
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{prop}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+
+\begin{document}
+
+\title {On the epidemic threshold of a network}
+\maketitle 
+ 
+\small
+\begin{center}
+V. Cherniavskyi, G. Dennis, S. R. Kingan
+\end {center}
+\bigskip
+
+ 
+
+ 
+{\begin{abstract}
+
+We present an approach to vertex centrality  motivated by the Vertex Reconstruction Conjecture that asks whether or not a graph $G$ with $n$ vertices $v_1, v_2, \dots , v_n$ can be reconstructed from its deck of vertex deleted subgraphs $G-v_1, G-v_2, … , G-v_n$. The impact of vertex $v$ is measured by removing it and considering the subgraph $G-v$. Then various parameters can be calculated for $G$ and compared with the corresponding parameters for $G-v$. This gives a  ranking of the vertices. The parameter examined in this paper is the largest eigenvalue of the adjacency matrix of the graph. The inverse of the largest eigenvalue is the epidemic threshold in a non-linear dynamical system model of a contagion spreading on a network. We define the spread centrality of a vertex in a graph $G$ as the difference between the largest eigenvalues of $G$ and $G-v$ and compare it to other centrality measures. 
+\end{abstract}
+ 
+\section {\bf  Introduction}
+
+There are two fundamental ways of modeling the spread of a disease, the SIS model and the SIR model. In the SIS model,  vertices have two states, susceptible (S) or infected (I). A susceptible  vertex becomes infected through an adjacent infected  vertex with probability $p_b$ called the birth rate of the virus. An infected  vertex recovers with probability $p_d$ called the death rate of the virus. In the SIS model a recovered  vertex can become infected again. It is assumed that a  vertex is infectious as soon as it becomes infected and becomes susceptible as soon as it recovers. In the SIR model,  vertices  have three states:  susceptible (S), infected (I), and removed (R). A susceptible  vertex becomes infected through an adjacent infected  vertex and recovers (or dies) and is removed from the network. For example, a disease like the flu follows the SIS model, whereas a disease like mumps where the patient becomes permanently immune after recovery follows the SIR model. 
+
+These models when combined with information about the underlying network simulate the spread of diseases. Let $G$ be a connected graph with $n\ge 2$ vertices and $m$ edges. Suppose a virus is spreading on $G$, where $p_b$ is the probability that the virus spreads from one  vertex to a  vertex adjacent to it (the virus is born), and $p_d$ is the probability that an infected  vertex recovers (the virus dies). From epidemiological studies, these numbers are very small, usually less than $0.1$. 
+An {\it epidemic threshold} is a number $\tau(G)$   such that if  $\frac{p_b}{p_d} > \tau(G),$ then the virus causes an epidemic, otherwise it dies out without causing an epidemic \cite {DaleyGani1999}. 
+
+Let $A(G)$ be the adjacency matrix of graph $G$ and let the $n$ eigenvalues of $A(G)$ in descending order be 
+$\lambda_1 (G)\ge \lambda_2(G) \ge  \cdots \ge \lambda_{n-1}(G) \ge \lambda_n(G).$  Since $A(G)$ is  a real symmetric matrix, the Perron-Frobenius Theorem implies that the largest eigenvalue $\lambda_1(G)$ is a real number and it has the highest absolute value of all the eigenvalues. If $G$ has no edges, then the adjacency matrix is the zero matrix, and the eigenvalues are 0. If $G$ has at least one edge, then $\lambda_1(G)>0$. If $G$ is connected, then $\lambda_1(G)>1$ is an eigenvalue of multiplicity 1 and all the entries of its eigenvector have the same sign. So we may consider the eigenvector to have all positive entries. 
+
+The largest eigenvalue, also called the {\it index} or the {\it spectral radius}, is a key parameter for several dynamic processes such as a contagion spreading in people or animals,  a virus spreading on a computer network, an idea spreading on a social network, channel capacity in Shannon information theory, energy levels of electrons in molecules, synchronization of coupled oscillators, stability of couplings in the  brain, etc. Hundreds of papers and multiple books have been written about graph spectra and its applications. See, for example, \cite{Pik2003}, \cite{Cvet2009}, and \cite{Nica2018}.
+
+In \cite{Chak2008}, the authors developed a non-linear dynamical system (NLDS) model for virus propagation on a network based on the SIS model. A system is considered unstable if the first eigenvalue of a certain matrix $M$ associated with the system is large and stable otherwise. A small perturbation in a stable system will eventually die out.  
+The authors showed that for a graph $G$ and a contagion with birth and death probabilities $p_b$ and $p_d$, respectively, spreading on the graph, the contagion will inevitably die out if and only if $\frac{p_b}{p_d} \le \frac{1}{\lambda_1(G)}$. Let ${\bf p}_t$ be a vector of length $n$ where the $i^{th}$ entry is the probability that vertex $i$ is infected at time $t$. If ${\bf p}_t = {\bf 0}$ for some $t$ then ${\bf p}_{t + k} = {\bf 0}$ for all $k \ge 0$. They showed that the sequence ${\bf p}_0, {\bf p}_1, \dots$ converges to $\bf 0$ if and only if $\frac{p_b}{p_d} \le \frac{1}{\lambda_1(G)}$, using a non-linear dynamical system relating $p_b$, $p_d$, $G$ and ${\bf p}_t$. Otherwise, if $\frac{p_b}{p_d} > \frac{1}{\lambda_1(G)}$ the epidemic does not die out.
+
+\begin{theorem}\label{NLDS-theorem} Let $G$ be a graph and let $\lambda_1(G)$ be the largest eigenvalue of its adjacency matrix. In NLDS, the epidemic threshold $\tau(G) = \frac{1}{\lambda_1(G)}$.
+\end{theorem}
+
+Consequently, if $$p_d > \lambda_1(G)p_b, $$ then the epidemic will die out over time irrespective of the size of the initial outbreak of infection. For example, the graph on the left in Figure \ref{karategrapheigenvectorcentrality}, with 50 vertices and 250 edges, has largest eigenvalue 10.73 and therefore, if $p_d > 10.73p_b$, an epidemic spreading on the graph will die out over time. The graph on the right, with 50 vertices and 1185 edges, has largest eigenvalue 47.42, and requires $p_d > 47.42p_b$ for an epidemic to die out.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=5in]{fig1.jpg}
+\label{karategrapheigenvectorcentrality}
+\caption {Two connected graphs on 50 vertices}
+ \end{figure}
+
+In Section 2, we present the results of our simulation of a disease spreading on a network with various parameters designed to produce an outbreak that either grows to become an epidemic or dissipates. What does an epidemic look like? What does it look like when an outbreak dies out? We present a way of visualizing these very different outcomes in the same figure. In Section 3 we define the spread centrality of a vertex in a graph $G$ as the difference between the largest eigenvalues of $G$ and $G-v$ and compare it to other centrality measures. In Section 4 two vaccination strategies are compared for effectiveness. Finally, next steps are discussed in Section 5.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ 
+
+\section{\bf  Simulating an Epidemic}
+
+What does it look like when an outbreak becomes an epidemic that lingers in the population as vertices become infected, recover, and become infected again? What does an outbreak that dies out without becoming an epidemic look like? 
+Three items are key to the simulation: the birth rate $p_b$ of the virus, the death rate $p_d$ of the virus, and the underlying network $G$. The network gives $\lambda_1(G)$. 
+
+The birth rate of the virus, $p_b$, is the probability that a vertex with one infected neighbor will become infected over a unit of time. If  vertex $v$ has $i$ infected neighbors, then perform $i$ random draws with probability $p_b$. If a positive result occurs in any draw, then $v$ is infected. How should the random draw be done? Draw a random number uniformly between 0 and 1 and treat success as the event that the random number is less than $p_b$. Repeat this $i$ times because  vertex $v$ has $i$ infected neighbors. Each random draw is an independent event. 
+
+The probability of an infected  vertex recovering at each unit of time is the death rate of the virus $p_d$. The same random draw process is used to decide whether an infected  vertex will recover at each unit in time. In order to illustrate the relationship between $p_b$ and $p_d$, it makes sense to fix one of them and vary the other. Therefore, let $p_b$ be fixed at $0.05$ throughout the simulation. 
+
+%For example,  Figure \ref{karategraph} displays the spread centrality of the karate graph \cite{Zachary1977}, which has largest eigenvalue $\lambda_1 (G) = 6.73$, and consequently  $p_d > 6.73p_b$.
+
+Initially, let $G$ be the karate graph\footnote{{\tt https://networkrepository.com/soc-karate.php}}, which has 34 vertices and 78 edges, with $\lambda_1(G) = 6.73$. Suppose $p_d=0.4$, which is slightly larger than $p_b\lambda_1(G)$. The theory predicts that such an outbreak would die out on this graph.  One vertex $v$  is selected as the seed (patient zero) and fixed. The simulation is run for $T\ge 1$ days. For each day $t$,  where $2\le t\le T$:
+
+\begin{itemize}
+\item For each uninfected  vertex decide whether or not it gets infected at day $t$ based on the number of infected neighbors it has on day $t-1$. As mentioned above, this is done with a random draw with probability of success $p_b$ repeated as many times as the number of infected neighbors. 
+
+\item For each infected  vertex decide whether or not it will recover with a single random draw with probability of success $p_d$. 
+
+\end{itemize}
+\noindent Finally, count the number of infected  vertices for each day. 
+
+In order to mitigate the effect of individual random number draws, this process is repeated $K\ge 1$ times for seed  vertex $v$ with different sequences of random numbers governing the spread of the infection. We used $K=200$. 
+
+At the end, for the seed  vertex $v$, let $S_{v, k, t}$ denote the number of infected  vertices, where $1\le t\le T$ is the number of days and $1\le k\le K$ is the index of the repetition. The entire process is repeated using each of the $n$  vertices in the graph as the seed  vertex in turn. 
+Since it does not matter which  vertex is chosen as the seed  vertex, average the number of infected  vertices for each day $t$ across all seed  vertices and all runs to get:
+$$S_t = \frac{1}{nK} \sum_{v \in V(G)} \sum_{1 \le k \le K} S_{v, k, t}.$$
+This gives a curve with days $t$ on the $x$-axis and the number of infected  vertices $S_t$ on the $y$-axis corresponding to $p_b=0.5$ and $p_d=0.4$ over all $T$ days.
+ 
+Finally, the whole process was repeated using a decreasing sequence of values of $p_d$, where each value was obtained by multiplying the previous value by a factor of $0.5$. Figure \ref{karate-simulation-figure} displays curves showing the average number of infected  vertices per round for $4$ different values of $p_d$. Each simulation was run with $p_b = 0.05$.
+
+As predicted by Theorem \ref{NLDS-theorem}, when $p_d \ge p_b\lambda_1(G)$, the infection dies out. This is indicated by the lowest curve which tends to zero as the number of days increases. When $p_d < p_b\lambda_1(G)$ the infection lingers in the population as infected vertices recover and become infected again. This manifests itself in curves that sharply increase and then plateau at a constant positive number of infected vertices.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=5in]{simulation-karate.jpg}
+\caption{Simulation results for karate graph with $p_b = 0.05$ and $p_d = 0.4, 0.2, 0.1$ and $0.05$. \label{karate-simulation-figure}}
+\end{figure}
+ 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section {\bf  Spread Centrality}
+
+A  vertex centrality measure  is an assignment of numbers to the vertices $\{v_1, v_2, \dots , v_n\}$ of a graph $G$ with the goal of ranking them in a manner relevant to some real world situation. The NLDS model of how a virus spreads suggests  a vertex centrality measure. Vaccinating a vertex may be viewed as deleting the vertex since the virus can no longer spread along its links to neighboring vertices. For each vertex $v_i$, compute the eigenvalues of the adjacency matrix $A(G-v_i)$ of the subgraph $G-v_i$, and write them in non-increasing order as $$\lambda_1 (G-v_i)\ge \lambda_2(G-v_i) \ge  \cdots \ge \lambda_{n-1}(G-v_i) \ge \lambda_n(G-v_i).$$ 
+
+Focusing on the largest eigenvalue of $G-v_i$ gives a ranking of the vertices with the smaller numbers in the set
+$$\{\lambda_1(G-v_1),  \lambda_1(G-v_2), \dots , \lambda_1(G-v_n)\}$$ being more desirable as candidates for vaccination. To be consistent with other centrality measures, we will consider the  difference between  $\lambda_1 (G)$ and $\lambda_1 (G-v_i)$ and adopt the usual largest to smallest ranking of vertices, with vertices ranking higher being more desirable. 
+
+Next, we use Cauchy's Interlacing Theorem \cite{Hwang2004} to ensure that the difference is always non-negative. 
+
+\begin{theorem} \label{InterlacingTheorem} Let $A$ be an $n\times n$ real symmetric matrix and let $B$ be a first minor obtained from $A$ by deleting the $i$th row and $i$th column. Let $\alpha_1 \ge \alpha_2 \ge \dots \ge \alpha_n$ be the eigenvalues of $A$ and let $\beta_1 \ge \beta_2 \ge \dots \ge \beta_{n-1}$ be the eigenvalues of $B$. Then $$\alpha_1 \ge \beta_1 \ge \alpha_2 \ge \beta_2 \ge \dots \ge \alpha_{n-1} \ge \beta_{n-1} \ge \alpha_n.$$ \end{theorem}
+
+Since $A(G)$ is a real symmetric matrix and $A(G-v)$ is obtained from $A(G)$ by deleting the $i$th row and column, Theorem \ref{InterlacingTheorem} implies that  $$\lambda_1 (G) \ge \lambda_1(G-v) \ge \lambda_2(G) \ge \lambda_2 (G-v) \ge \dots \ge \lambda_{n-1}(G) \ge \lambda_{n-1}(G-v) \ge \lambda_n(G).$$
+Consequently, $\lambda_1 (G)-\lambda_1 (G-v)\ge 0$. We define the {\it spread centrality} of a vertex $v$  as  $$\sigma(v)=\lambda_1 (G)-\lambda_1 (G-v).$$
+Observe that  
+$$0 \le \sigma(v) \le \lambda_1(G).$$
+The smaller the value of $\lambda_1(G-v)$ as compared to $\lambda_1(G)$, the larger the difference $\lambda_1(G)-\lambda_1(G-v)$,  which is desirable in order for the epidemic threshold $\tau(G-v)$ to be much larger than $\tau(G)$. It makes sense to vaccinate such  vertices first.
+
+For example, consider the graph $G$ shown in Figure \ref{firstgraph}. The largest eigenvalue of $G$, $\lambda_1(G)=2.48$ and  the vertex orbits are $\{v_1, v_2\}$, $\{v_3, v_5\}$, and $\{v_4\}$. 
+
+
+\begin{figure}[h]
+$\vcenter{\hbox{\includegraphics[width=1in]{graph.jpg}}}$\ \ 
+$\tiny A=\bbordermatrix{
+& v_1 & v_2 & v_3 & v_4 & v_5\cr
+v_1 & 0 & 1 & 0 & 0 & 1 \cr
+v_2 & 1 & 0 & 1 & 0 & 0 \cr
+v_3 & 0 & 1 & 0 & 1 & 1 \cr
+v_4 & 0 & 0 & 1 & 0 & 1 \cr
+v_5 & 1 & 0 & 1 & 1 & 0
+}
+$
+\caption {A graph and its adjacency matrix}\label{firstgraph}
+\end{figure}
+
+Figure \ref{deckofvertexdeletions} shows the deck of vertex deletions of $G$ along with the largest eigenvalue of each graph in the deck. The following table shows the spread centrality of each vertex in contrast to the usual centrality measures.
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=5in]{deckofvertexdeletions.jpg}
+\label{deckofvertexdeletions}
+\caption {Largest eigenvalues of the deck of vertex deletions}
+\end{figure}
+
+\centerline{
+\begin{tabular}{c|c|c|c|c|c}
+Vertex & Spread & Degree & Closeness & Betweenness& Eigenvector  \\ \hline
+$v_1$ &  0.31 & 2 & 0.17 & 0.5 & 0.36 \\
+$v_2$ &  0.31 & 2 & 0.17 & 0.5 & 0.36 \\
+$v_3$ &   0.86 & 3 & 0.2 & 1.5 & 0.53\\
+$v_4$ &  0.48 & 2 & 0.17 & 0 & 0.43\\
+$v_5$ &  0.88 & 3 & 0.2 & 1.5 &0.53  
+\end{tabular} 
+}
+
+Theorem \ref{examples-1} allows us to obtain the spread centrality of several graph families. Every vertex  in $K_n$ has spread centrality 1. Every vertex in $C_n$ has spread centrality $2(1- \cos(\frac{\pi}{n+1}))$.  Let $v$ be the center vertex in $S_n$ and let $w$ be an outer vertex. Then $\sigma(v)=\sqrt{n-1}$ and $\sigma(w)=\sqrt{n-1}-\sqrt{n-2}$. 
+
+      
+In order to visualize the spread centralities of the vertices of a large graph, we plot a heat map of the graph by assigning colors to vertices according to their spread centralities with red representing  highest spread centrality. % Let $\sigma(v_1), \sigma(v_2), \dots, \sigma(v_n)$ be the spread centralities of vertices $v_1, v_2, \dots, v_n$. Let 
+% $$s_{\text{min}} = \min_{v \in V(G)} \{\sigma(v)\}$$ and 
+% $$s_{\text{max}} = \max_{v \in V(G)}\{ \sigma(v)\}.$$ Let's assume that our plotting software allows us to choose from a list of $t$ colors, say using values $0, \dots, t-1$. For example, $0$ may be assigned to the color blue, $t-1$ may be assigned to the color red, and values between $0$ and $t-1$ may be assigned to intermediate shades between blue and red. We would like to plot any vertex with score $s_{\text{min}}$ using color $0$ (that is blue), any vertex with score $s_{\text{max}}$ with color $t-1$ (that is red), and any other vertex with a score between $0$ and $t-1$, proportional to the vertex's score's position between $s_{\text{min}}$ and $s_{\text{max}}$. That is, we would like a non-decreasing function $f: {\mathbb R} \rightarrow {\mathbb Z}$ such that $f(s_{\text{min}}) = 0$ and $f(s_{\text{max}}) = t-1$. We use the linear function $$f(s) = \left\lfloor(t-1) \frac{s - s_{\text{min}}}{s_{\text{max}} - s_{\text{min}}}\right\rfloor.$$
+ 
+For example,  Figure \ref{karategraph} displays the spread centrality of the karate graph \cite{Zachary1977}, which has largest eigenvalue $\lambda_1 (G) = 6.73$, and consequently  $p_d > 6.73p_b$.  In this example, $v_{16}$ has the smallest spread centrality and $v_{33}$ has the largest spread centrality, with values $0.01$ and $0.64$ respectively.  
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=3in]{karategraphspreadcentrality.jpg}
+\caption {Spread centrality for the karate graph \label{karategraph}}
+\end{figure}
+
+
+%\begin{figure}[h]
+%\centering
+%\includegraphics[width=6in]{summary.jpg}
+%\label{karategrapheigenvectorcentrality}
+%\caption {Degree centrality, eigenvector centrality, betweenness centrality, and closeness centrality of the karate graph}
+%\end{figure}
+ 
+  
+
+
+Using Spearman's rank correlation {\color{red} (NEED REFERENCE)} coefficient, the vertex rankings of the karate graph obtained by spread centrality with degree, closeness, betweenness, and eigenvector centralities were compared, and a high correlation with eigenvector centrality was noted (see Figure \ref{correlations}).
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=6.5in]{correlations.jpg}
+\caption {Rank correlation between spread centrality and degree, closeness, betweenness, and eigenvector centralities  \label{correlations}}
+\end{figure}
+   
+However, this is not always the case. For example, consider the  regular graph $G$ shown in Figure \ref{regular-graph-example}. Theorem \ref{examples-1}(vi) implies that $\lambda_1(G)=3$ and its eigenvector is the vector of all ones. Thus each vector has the same eigenvector centrality. However, the spread centrality is not the same. Vertices $v_1$, $v_3$, $v_5$, and $v_7$ have spread centrality  0.29 and vertices $v_2$, $v_4$, $v_6$, and $v_8$ have spread centrality 0.24.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=1.5in]{regular-graph-example.jpg}
+\caption { vertex spread centralities of a regular graph\label{regular-graph-example}}
+\end{figure}
+  
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section {\bf Two vaccination strategies}
+ 
+Let $G$ be a graph representing a social network in which an infection has to be controlled. Let $f$ be a function that accepts a graph with $n$ vertices as input and outputs a vector of length $n$ measuring the centralities of the vertices of the graph. For example, $f$ could output spread centralities or eigenvector centralities, as the case may be. Suppose we have $k$ vaccine doses. There are two ways to vaccinate (or remove) $k$  vertices. 
+
+\noindent {\bf Method 1:} Select the $k$ vertices with the highest centrality according to $f$ and remove them. If there are ties, choose randomly among vertices at the bottom of the list. For example, suppose the top measures are $10$, $10$, $9$, $7$, $7$ and $7$ and $k = 5$. Then two of the vertices with score $7$ should be chosen randomly.
+\bigskip
+
+\noindent {\bf Method 2:} Remove the vertex with the highest centrality according to $f$, then recalculate $f(G-v)$ and remove the vertex with highest centrality, and so on sequentially until $k$ vertices are removed. If there are ties at any step, choose a vertex randomly from among the vertices that have the highest centrality measure.
+
+ 
+\begin{figure}[h]
+\centering
+\includegraphics[width=3in]{karate-10steps.jpg}
+\end{figure}
+  
+
+\bigskip
+
+These methods were evaluated using two graphs, the previously mentioned karate graph with 34 vertices and 78 edges and the football network\footnote{{\tt http://www-personal.umich.edu/~mejn/netdata/}}. The football network has 115 vertices and 613 edges. Eight vertices were selected for removal from the karate graph, and 28 vertices were selected for removal from the football graph, or approximately one quarter of the vertices in each case.
+
+In the karate graph using Method 1 with spread centrality to remove 8 vertices, the resulting subgraph had largest eigenvalue 2.62, whereas using Method 2 the resulting subgraph had largest eigenvalue 2.17. A similar outcome was obtained for the football graph with Method 1 giving 9.78 and Method 2 giving 7.43. The results are also summarized in the table below. We examined several large graphs and found that  Method 2 is better. 
+
+\bigskip
+
+\centerline{
+\begin{tabular}{|l|r|r|}
+\hline
+Graph & Method 1 & Method 2 \\
+\hline
+Karate & 2.62 & 2.17 \\
+\hline
+Football & 9.78 & 7.43 \\
+\hline
+\end{tabular}
+}
+\bigskip
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section {\bf Conclusion}
+
+
+Canright and Engo-Monsen argued in \cite{Can2006} that eigenvector centrality is a good measure of spread . Our experiments confirm it. There is a theoretical basis for such a strong correlation that is prevalent in multiple large graphs that we examined. The eigenvector of the adjacency matrix of a graph captures the structure of the graph and removing one vertex in a large graph does not alter the structure by much. 
+
+
+ 
+\begin{thebibliography}{999}
+
+
+\bibitem{Can2006}   G. Canright and K. Engo-Monsen (2006). Spreading on Networks: A Topographic View. {\it Complexus} 3, 131--146.  
+
+ 
+\bibitem{Chak2008}   D. Chakrabarti, Y. Wang, C. Wang, J. Leskovec, and C. Faloutsos (2008). Epidemic Thresholds in Real Networks, {\it ACM Transactions on Information and System Security}, Vol. 10, No. 4, 13:1 -- 13:26.
+
+%\bibitem{Collatz1957} L. Collatz  and U. Sinogowitz, U. (1957) Spektren endlicher Grafen. Abhandlungen aus dem Mathematischen Seminar der Universitat Hamburg, 21, 63-77.
+
+
+%\bibitem{Cvet1990}  D. Cvetkovi\'c and P. Rowlinson (1990) The largest eigenvalue of a graph: A survey, {\it Linear and Multilinear Algebra}, 28:1-2, 3 --  33.
+
+
+%\bibitem{Cvet2009} D. M. Cvetkovi\'c, P. Rowlinson, and S. K. Simic (2009). {\it An Introduction to the Theory of Graph Spectra}, Cambridge University Press.
+
+\bibitem{DaleyGani1999} D. J. Daley and J. Gani, (1999). Epidemic Modeling: An Introduction, Cambridge University Press.
+
+%\bibitem{Edwards1983} C. S. Edwards and C. H. Elphick (1983). Lower bounds for the clique and the chromatic numbers of a graph,
+{\it Discrete Applied Mathematics}, Vol. 5, Issue 1, 51 -- 64.
+
+%\bibitem{Favaron1993} O. Favaron, and M. Mah\'eo, J.-F. Sacl\'e (1993).Some eigenvalue properties in graphs (conjectures of Graffiti — II), Discrete Mathematics, Volume 111, Issues 1–3, 197 -- 220.
+
+\bibitem{Freeman1977} L. C. Freeman (1977).  A set of measures of centrality based on betweenness, {\it Sociometry} {\bf 40}(1),  35--41. 
+ 
+%\bibitem{GirvanNewman2002} M. Girvan  and M. E. J. Newman  (2002). Community structure in social and biological networks, PNAS {\bf 99}(12), 7821 -- 7826.
+ 
+%\bibitem{Godsil1984} C. D. Godsil (1984). Spectra of trees, {\it Ann. Disc. Math.} 20, 151 -- 159.
+
+\bibitem{Hwang2004} Hwang, S. G. (2004). Cauchy's interlace theorem for eigenvalues of Hermitian matrices. The American mathematical monthly, 111(2), 157-159.
+
+%\bibitem{Hu2007} S. Hu (2007). The largest eigenvalue of unicyclic graphs, {\it Discrete Mathematics} 307, 280 -- 284.
+
+\bibitem{Jam2006} A. Jamakovic,, R. E.  Kooij, P. van Mieghem, and E. R. van Dam (2006).  Robustness of networks against viruses: The role of the spectral radius
+ 
+
+%\bibitem{LovaszPelikan1973} L. Lov\'asz and J Pelik\'an (1973), On the eigenvalues of trees, {\it Periodica Mathematica Hungarica}, Vol. 3 (1-2) 175 -- 182.
+
+\bibitem{MooreRogers2020} S. Moore and T. Rogers (2020). Predicting the Speed of Epidemics Spreading in Networks {\it Phys. Rev. Lett.} 124, 068301
+
+
+%\bibitem{Nica2018} B. Nica (2018). {\it A Brief Introduction to Spectral Graph Theory}, EMS Textbooks in Mathematics.
+
+
+%\bibitem{Nosa1970} E. Nosa (1970). Eigenvalues of graphs, Masters thesis, University of Calgary.
+
+
+ \bibitem{Pik2003} A. Pikovsky, M. Rosenblum, and J. Kurths (2003). {\it Synchronization: a universal concept in nonlinear sciences},  Cambridge University Press. 
+
+
+
+\bibitem{SarkarJalan2018} C. Sarkar  and S. Jalan  (2018) Spectral properties of complex networks. {\it Chaos} 28(10):102101. 
+
+\bibitem{Rest2006} J.  G. Restrepo, E. Ott, and B. R. Hunt (2006). Characterizing the Dynamical Importance of Network  vertices and Links, PRL 97, 094102.
+ 
+%\bibitem{Wilf1967} H. S. Wilf (1967) The eigenvalues of a graph and its chromatic number, {\it  Journal of the London Mathematical Society}, Vol. s1-42, Issue 1, 330 -– 332.
+
+%\bibitem {Yuan1988} H. Yuan (1988). A bound on the spectral radius of graphs, {\it Linear Algebra and its Applications}, 108, 135 --139.
+
+%\bibitem{Chak2003} Y. Wang, D. Chakrabarti, C. Wang and C. Faloutsos (2003). Epidemic spreading in real networks: an eigenvalue viewpoint, {\it 22nd International Symposium on Reliable Distributed Systems} 10(13), 25 - 34.
+
+
+%\bibitem{Zachary1977} W. W. Zachary (1977). An information flow model for conflict and fission in small groups, {\it Journal of Anthropological Research} 33, 452--473.
+
+\end{thebibliography}
+\vfill
+\eject
+ 
+\section* {\bf Appendix A}
+
+The algorithm described below assumes the existence of a function \textproc{Rand} which returns a random number drawn uniformly from the interval $[0, 1]$. Let $s_{w, t}$ denote the state of  vertex $w$ at time $t$, which may be either $0$ (susceptible) or $1$ (infected).
+
+\begin{algorithm}
+\caption{Disease propagation simulation algorithm}
+\begin{algorithmic}[1]
+\Procedure{SimulateDisease}{Graph $G$, $0 < p_b < 1$, $0 < p_d < 1$, $K > 0$, $T > 0$}
+\For {$v \in V(G)$}
+	\For{$k$ in $1, 2, \dots, K$}
+		\For{$w \in V(G)$}
+			\If{$w = v$}
+				\State $s_{w, t} \gets 1$
+			\Else
+				\State $s_{w, t} \gets 0$
+			\EndIf
+		\EndFor
+		\For{$t$ in $2, 3, \dots, T$}
+			\For{$w \in V(G)$}
+				\If{$s_{w, t-1} = 0$}
+					\State{$i \gets \sum_{x \in N(w)}s_{x, t-1}$}
+					\State{$s_{w, t} \gets 0$}
+					\For{$j$ in $1, \dots, i$}
+						\State{$r \gets \Call{Rand}{\ }$}
+						\Comment Draw a random number in the range $[0, 1]$.
+						\If{$r < p_b$}
+							\Comment If the number is less than $p_b$, 
+							\State{$s_{w, t} \gets 1$}
+							\Comment vertex $w$ becomes infected.
+							\Break
+						\EndIf
+					\EndFor
+				\Else
+					\Comment An infected  vertex recovers with probability $p_d$.
+					\State{$r \gets \Call{Rand}{\ }$}
+					\If{$r < p_b$}
+						\State{$s_{w, t} \gets 0$}
+					\Else
+						\State{$s_{w, t} \gets 1$}
+					\EndIf
+				\EndIf
+			\EndFor
+		\EndFor
+	\EndFor
+\EndFor
+\State{$n \gets |V(G)|$}
+\For{$t$ in $1, 2, \dots, T$}
+	\State{$S_t \gets \frac{1}{nK} \sum_{v \in V(G)} \sum_{1 \le k \le K} s_{v, k, t}$}
+\EndFor
+
+\State{OUTPUT $\{S_t | 1 \le t \le T\}$}
+
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+
+\vfill 
+\eject
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end {document}
