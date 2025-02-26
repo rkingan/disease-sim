@@ -7,19 +7,22 @@ Writes an output CSV file with parameters for each trial and the number of
 infected vertices at each step in the trial.
 
 """
-import click
-import logging
-import igraph
-import sys
 import csv
+import logging
+import sys
 from typing import Any
+
+import click
+import igraph
 from dissim.igraph_util import load_graph_here, nodes_from_igraph
-from dissim.centrality import centrality_ftn, selection_strategy, SELECTION_STRATEGY_TYPE, CENTRALITY_FTN_TYPE, largest_graph_eigenvalue
-from dissim.main import prop_model, SISModel, DSState, propagate
+from dissim.centrality import centrality_ftn, selection_strategy, largest_graph_eigenvalue
+from dissim.main import prop_model, DSState, propagate
 from dissim.rng import SimpleSampler, SimpleRNG
 
-logging.basicConfig(level=logging.INFO,format="[%(asctime)s] : %(filename)s[%(lineno)d] : %(levelname)s : %(message)s")
-log = logging.getLogger()
+
+_FORMAT="[%(asctime)s] : %(filename)s[%(lineno)d] : %(levelname)s : %(message)s"
+logging.basicConfig(level=logging.INFO, format=_FORMAT)
+log = logging.getLogger(__name__)
 
 
 def _get_trial_vaxxed(p0_ix, vaxxed):
@@ -32,7 +35,6 @@ def _get_trial_vaxxed(p0_ix, vaxxed):
 
 
 def _get_round_totals(nodes, rounds):
-    n = len(nodes)
     totals = [0] * rounds
     for node in nodes:
         for rnd in range(rounds):
@@ -54,7 +56,20 @@ def _get_round_totals(nodes, rounds):
 @click.option("-b", "--pb", "pb", type=float, default=0.05, help="Propagation probability")
 @click.option("-d", "--pd", "pd", type=float, default=0.05, help="Recovery probability")
 @click.option("-z", "--seed", "rng_seed", type=int, default=42, help="Random number generation seed")
-def run_sim(graph: igraph.Graph, output_fname: str, p0: str, strategy_name: str, centrality_name: str, pct_vax: int, trials: int, model_name: Any, rounds: int, pb: float, pd: float, rng_seed: int):
+def run_sim(
+    graph: igraph.Graph,
+    output_fname: str,
+    p0: str,
+    strategy_name: str,
+    centrality_name: str,
+    pct_vax: int,
+    trials: int,
+    model_name: Any,
+    rounds: int,
+    pb: float,
+    pd: float,
+    rng_seed: int
+):
     n = len(graph.vs)
 
     log.info("Computing largest eigenvalue of graph...")
@@ -90,7 +105,7 @@ def run_sim(graph: igraph.Graph, output_fname: str, p0: str, strategy_name: str,
     cent = None
     if centrality is not None:
         cent = centrality(graph)
-    
+
     results = list()
     nd = len(str(rounds))
     headings = ["graph", "leig", "patient0", "patient0_cent", "rounds", "strategy", "centrality", "model", "pb", "pd", "seed", "trial"] + [f"infected_{i:0{nd}d}" for i in range(rounds)]
@@ -130,4 +145,4 @@ def run_sim(graph: igraph.Graph, output_fname: str, p0: str, strategy_name: str,
 
 
 if __name__ == "__main__":
-    run_sim()
+    run_sim()  # pylint: disable=no-value-for-parameter
